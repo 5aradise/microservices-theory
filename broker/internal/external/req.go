@@ -12,10 +12,10 @@ func AuthToReq(auth model.AuthParams) contreq.Authenticate {
 	}
 }
 
-func LogToReq(auth model.LogParams) contreq.WriteLog {
+func LogToReq(log model.LogParams) contreq.WriteLog {
 	return contreq.WriteLog{
-		Name: auth.Name,
-		Data: auth.Data,
+		Name: log.Name,
+		Data: log.Data,
 	}
 }
 

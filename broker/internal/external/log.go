@@ -27,12 +27,12 @@ func NewLogService(url string) *LogService {
 }
 
 func (s *LogService) Log(ctx context.Context, params model.LogParams) (data any, err error) {
-	authBody, err := json.Marshal(LogToReq(params))
+	logBody, err := json.Marshal(LogToReq(params))
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, s.url, bytes.NewReader(authBody))
+	req, err := http.NewRequest(http.MethodPost, s.url, bytes.NewReader(logBody))
 	if err != nil {
 		return nil, err
 	}

@@ -1,9 +1,10 @@
 package model
 
 type SubmissionParams struct {
-	Auth *AuthParams
-	Log  *LogParams
-	Mail *MailParams
+	Auth  *AuthParams
+	Log   *LogParams
+	Mail  *MailParams
+	Queue *QueueParams
 }
 
 type AuthParams struct {
@@ -21,4 +22,9 @@ type MailParams struct {
 	To      string
 	Subject string
 	Message string
+}
+
+type QueueParams struct {
+	Key  string
+	Data LogParams
 }

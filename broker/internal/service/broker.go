@@ -2,22 +2,24 @@ package service
 
 import (
 	"context"
-	"errors"
 	"micro/broker/internal/external"
 	"micro/broker/internal/model"
 )
 
 type Broker struct {
-	authServ *external.AuthService
-	logServ  *external.LogService
-	mailServ *external.MailService
+	authServ  *external.AuthService
+	logServ   *external.LogService
+	mailServ  *external.MailService
+	queueServ *external.QueueService
 }
 
-func NewBroker(authServ *external.AuthService, logServ *external.LogService, mailServ *external.MailService) *Broker {
+func NewBroker(authServ *external.AuthService, logServ *external.LogService,
+	mailServ *external.MailService, queueServ *external.QueueService) *Broker {
 	return new(Broker{
-		authServ: authServ,
-		logServ:  logServ,
-		mailServ: mailServ,
+		authServ:  authServ,
+		logServ:   logServ,
+		mailServ:  mailServ,
+		queueServ: queueServ,
 	})
 }
 
@@ -26,11 +28,14 @@ func (s *Broker) Submission(ctx context.Context, action model.Action, params mod
 	case model.AuthAction:
 		data, err = s.authServ.Authenticate(ctx, *params.Auth)
 	case model.LogAction:
-		data, err = s.logServ.Log(ctx, *params.Log)
+		err = s.queueServ.Emit(ctx, model.QueueParams{
+			Key:  "log.INFO",
+			Data: *params.Log,
+		})
 	case model.MailAction:
 		data, err = s.mailServ.SendMail(ctx, *params.Mail)
 	default:
-		panic(errors.New("invalid action"))
+		panic("invalid action")
 	}
 	return
 }
