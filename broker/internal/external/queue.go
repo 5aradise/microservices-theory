@@ -17,7 +17,7 @@ func NewQueueService(emitter *amqputil.Emitter) *QueueService {
 	})
 }
 
-func (s *QueueService) Emit(ctx context.Context, params model.QueueParams) error {
+func (s *QueueService) Log(ctx context.Context, params model.QueueParams) error {
 	logBody, err := json.Marshal(LogToReq(params.Data))
 	if err != nil {
 		return err

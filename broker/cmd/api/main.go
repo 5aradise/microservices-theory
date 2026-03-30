@@ -8,6 +8,7 @@ import (
 	amqputil "micro/broker/pkg/amqp"
 	"net"
 	"net/http"
+	"net/rpc"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -18,6 +19,7 @@ const (
 	logURL      = "http://logger-service/log"
 	mailURL     = "http://mail-service/send"
 	rabbitmqURL = "amqp://guest:guest@rabbitmq"
+	rpcURL      = "logger-service:5001"
 )
 
 func main() {
@@ -38,12 +40,18 @@ func main() {
 		log.Panic(err)
 	}
 
+	rpcClient, err := rpc.Dial("tcp", rpcURL)
+	if err != nil {
+		log.Panic(err)
+	}
+
 	authServ := external.NewAuthService(authURL)
 	logServ := external.NewLogService(logURL)
 	mailServ := external.NewMailService(mailURL)
 	queueServ := external.NewQueueService(emitter)
+	rpcServ := external.NewRPCService(rpcClient)
 
-	serv := service.NewBroker(authServ, logServ, mailServ, queueServ)
+	serv := service.NewBroker(authServ, logServ, mailServ, queueServ, rpcServ)
 
 	h := handler.New(serv)
 
