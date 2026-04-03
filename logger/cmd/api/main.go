@@ -4,12 +4,15 @@ import (
 	"context"
 	"log"
 	"micro/logger/internal/handler"
+	"micro/logger/internal/logs"
 	"micro/logger/internal/service"
 	storage "micro/logger/internal/storage/mongodb"
 	"micro/logger/pkg/mongodb"
 	"net"
 	"net/http"
 	"net/rpc"
+
+	"google.golang.org/grpc"
 )
 
 const (
@@ -37,11 +40,21 @@ func main() {
 
 	rpc.Register(handler.NewRPCLog(serv))
 
-	l, err := net.Listen("tcp", net.JoinHostPort("", rpcPort))
+	grpcs := grpc.NewServer()
+	grpch := handler.NewGRPC(serv)
+	logs.RegisterLogServiceServer(grpcs, grpch)
+
+	rpcl, err := net.Listen("tcp", net.JoinHostPort("", rpcPort))
 	if err != nil {
 		log.Panic(err)
 	}
-	defer l.Close()
+	defer rpcl.Close()
+
+	grpcl, err := net.Listen("tcp", net.JoinHostPort("", grpcPort))
+	if err != nil {
+		log.Panic(err)
+	}
+	defer grpcl.Close()
 
 	log.Println("Starting rpc logger service on port: ", rpcPort)
 
@@ -54,12 +67,19 @@ func main() {
 
 	go func() {
 		for {
-			conn, err := l.Accept()
+			conn, err := rpcl.Accept()
 			if err != nil {
 				break
 			}
 
 			go rpc.ServeConn(conn)
+		}
+	}()
+
+	go func() {
+		err = grpcs.Serve(grpcl)
+		if err != nil {
+			log.Panic(err)
 		}
 	}()
 

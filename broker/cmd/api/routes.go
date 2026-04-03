@@ -25,6 +25,7 @@ func routes(h *handler.Broker) http.Handler {
 
 	r.Post("/", h.Broker)
 	r.Post("/handle", h.Submission)
+	r.Post("/log-grpc", h.GRPCSubmission)
 
 	return r
 }

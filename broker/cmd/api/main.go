@@ -11,6 +11,8 @@ import (
 	"net/rpc"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -20,6 +22,7 @@ const (
 	mailURL     = "http://mail-service/send"
 	rabbitmqURL = "amqp://guest:guest@rabbitmq"
 	rpcURL      = "logger-service:5001"
+	grpcURL     = "logger-service:50001"
 )
 
 func main() {
@@ -45,13 +48,20 @@ func main() {
 		log.Panic(err)
 	}
 
+	grpcClient, err := grpc.NewClient(grpcURL,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Panic(err)
+	}
+
 	authServ := external.NewAuthService(authURL)
 	logServ := external.NewLogService(logURL)
 	mailServ := external.NewMailService(mailURL)
 	queueServ := external.NewQueueService(emitter)
 	rpcServ := external.NewRPCService(rpcClient)
+	grpcServ := external.NewGRPCService(grpcClient)
 
-	serv := service.NewBroker(authServ, logServ, mailServ, queueServ, rpcServ)
+	serv := service.NewBroker(authServ, logServ, mailServ, queueServ, rpcServ, grpcServ)
 
 	h := handler.New(serv)
 

@@ -6,5 +6,6 @@ const (
 	_ Action = iota
 	AuthAction
 	LogAction
+	GRPCLogAction
 	MailAction
 )
